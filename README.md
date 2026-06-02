@@ -34,3 +34,25 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+# online
+
+# 安装 wrangler
+
+npm install -g wrangler
+
+# 登录 Cloudflare
+
+wrangler login
+
+# 推送
+
+pnpm pages:deploy
+
+# dev
+
+git config user.name 周末
+git config user.email zhou123456mo@gmail.com
+
+git remote set-url origin git@gitee.com:y-agent/family-menu.git
+git push -u origin main
