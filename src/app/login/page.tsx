@@ -52,11 +52,7 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div className="bg-red-50 text-red-600 text-sm p-3 rounded-md">
-                {error}
-              </div>
-            )}
+            {error && <div className="bg-red-50 text-red-600 text-sm p-3 rounded-md">{error}</div>}
             <div className="space-y-2">
               <Label htmlFor="phone">手机号</Label>
               <Input
@@ -85,7 +81,7 @@ export default function LoginPage() {
             <div className="text-center text-sm text-muted-foreground">
               还没有账号？{' '}
               <Link href="/register" className="text-primary hover:underline">
-                立即注册
+                注册
               </Link>
             </div>
           </form>
