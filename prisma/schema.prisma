@@ -1,0 +1,147 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// 用户角色
+enum Role {
+  ADMIN
+  USER
+}
+
+// 菜品状态
+enum DishStatus {
+  AVAILABLE
+  UNAVAILABLE
+}
+
+// 订单状态
+enum OrderStatus {
+  PENDING    // 待确认
+  CONFIRMED  // 已确认
+  PREPARING  // 制作中
+  SERVED     // 已上菜
+  COMPLETED  // 已完成
+  CANCELLED  // 已取消
+}
+
+// 用户表
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String?  @unique
+  password  String
+  role      Role     @default(USER)
+  orders    Order[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// 分类
+model Category {
+  id        String   @id @default(cuid())
+  name      String
+  icon      String?
+  dishes    Dish[]
+  sort      Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// 菜品表
+model Dish {
+  id          String        @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  image       String?
+  category    Category      @relation(fields: [categoryId], references: [id])
+  categoryId  String
+  methods     DishMethod[]
+  cartItems   CartItem[]
+  orderItems  OrderItem[]
+  status      DishStatus    @default(AVAILABLE)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+// 菜品做法
+model DishMethod {
+  id         String       @id @default(cuid())
+  name       String
+  price      Float        @default(0)
+  dishId     String
+  dish       Dish         @relation(fields: [dishId], references: [id], onDelete: Cascade)
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+}
+
+// 购物车
+model CartItem {
+  id        String      @id @default(cuid())
+  userId    String      // 游客模式，不强制关联 User
+  dishId    String
+  dish      Dish        @relation(fields: [dishId], references: [id], onDelete: Cascade)
+  methodId  String?
+  method    DishMethod? @relation(fields: [methodId], references: [id], onDelete: SetNull)
+  quantity  Int         @default(1)
+  remark    String?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@unique([userId, dishId, methodId])
+}
+
+// 订单
+model Order {
+  id          String       @id @default(cuid())
+  userId      String
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tableNo     String?
+  status      OrderStatus  @default(PENDING)
+  totalAmount Float
+  remark      String?
+  items       OrderItem[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+// 订单项
+model OrderItem {
+  id        String      @id @default(cuid())
+  orderId   String
+  order     Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  dishId    String
+  dish      Dish        @relation(fields: [dishId], references: [id])
+  methodId  String?
+  method    DishMethod? @relation(fields: [methodId], references: [id], onDelete: SetNull)
+  quantity  Int
+  price     Float
+  remark    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// 二维码
+model QRCode {
+  id        String   @id @default(cuid())
+  name      String
+  url       String
+  tableNo   String?
+  scans     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
