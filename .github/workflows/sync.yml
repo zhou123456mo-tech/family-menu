@@ -1,0 +1,28 @@
+name: Sync from Gitee
+
+on:
+  schedule:
+    # 每 5 分钟同步一次
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Sync from Gitee
+        run: |
+          git remote add gitee https://gitee.com/y-agent/family-menu.git
+          git fetch gitee
+          git merge gitee/main --allow-unrelated-histories --no-edit || git rebase gitee/main
+          git push origin main
