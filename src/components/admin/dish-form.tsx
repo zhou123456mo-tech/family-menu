@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Plus, X } from 'lucide-react'
+import { ImageUpload } from './image-upload'
 
 interface Category {
   id: string
@@ -268,18 +269,11 @@ export function DishForm({ dishId }: DishFormProps) {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="image">图片链接</Label>
-              <Input
-                id="image"
+              <Label>菜品图片</Label>
+              <ImageUpload
                 value={formData.image}
-                onChange={(e) =>
-                  setFormData({ ...formData, image: e.target.value })
-                }
-                placeholder="如：/images/dishes/hongshaorou.jpg"
+                onChange={(url) => setFormData({ ...formData, image: url })}
               />
-              <p className="text-xs text-muted-foreground">
-                请输入图片URL或上传后的路径
-              </p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="description">描述</Label>

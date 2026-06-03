@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useSession } from 'next-auth/react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
+import { Plus, Settings } from 'lucide-react'
 
 interface Category {
   id: string
@@ -29,6 +30,8 @@ interface Dish {
 }
 
 export default function MenuPage() {
+  const { data: session } = useSession()
+  const isAdmin = session?.user?.role === 'ADMIN'
   const [categories, setCategories] = useState<Category[]>([])
   const [dishes, setDishes] = useState<Dish[]>([])
   const [loading, setLoading] = useState(true)
@@ -78,9 +81,19 @@ export default function MenuPage() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-bold">今日菜单</h1>
-        <p className="text-muted-foreground">请选择您喜欢的菜品</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">今日菜单</h1>
+          <p className="text-muted-foreground">请选择您喜欢的菜品</p>
+        </div>
+        {isAdmin && (
+          <Link href="/admin">
+            <Button variant="outline" size="sm">
+              <Settings className="h-4 w-4 mr-2" />
+              管理后台
+            </Button>
+          </Link>
+        )}
       </div>
 
       {/* 分类标签 */}

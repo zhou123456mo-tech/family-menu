@@ -9,7 +9,8 @@ import {
   ClipboardList,
   QrCode,
   Settings,
-  Menu
+  Menu,
+  Users
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
@@ -18,6 +19,7 @@ import { useState } from 'react'
 const navItems = [
   { href: '/admin', label: '控制台', icon: LayoutDashboard },
   { href: '/admin/dishes', label: '菜品管理', icon: UtensilsCrossed },
+  { href: '/admin/users', label: '用户管理', icon: Users },
   { href: '/admin/orders', label: '订单管理', icon: ClipboardList },
   { href: '/admin/qrcodes', label: '二维码', icon: QrCode },
   { href: '/admin/settings', label: '设置', icon: Settings }

@@ -36,20 +36,19 @@ async function main() {
 
   console.log('Created categories:', categories.length)
 
-  // 创建管理员用户
-  const hashedPassword = await bcrypt.hash('admin123', 10)
+  // 创建默认管理员用户
+  const defaultAdminPassword = await bcrypt.hash('13253296242', 10)
   const admin = await prisma.user.upsert({
-    where: { id: 'user-admin' },
+    where: { phone: '13253296242' },
     update: {},
     create: {
-      id: 'user-admin',
-      name: '管理员',
-      phone: '13800138000',
-      password: hashedPassword,
+      name: 'admin',
+      phone: '13253296242',
+      password: defaultAdminPassword,
       role: 'ADMIN'
     }
   })
-  console.log('Created admin user:', admin.name)
+  console.log('Created default admin user:', admin.name, 'phone:', admin.phone)
 
   // 创建测试菜品
   const dishes = await Promise.all([
