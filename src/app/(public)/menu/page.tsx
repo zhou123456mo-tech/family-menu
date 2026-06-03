@@ -32,6 +32,7 @@ export default function MenuPage() {
   const [categories, setCategories] = useState<Category[]>([])
   const [dishes, setDishes] = useState<Dish[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [activeCategory, setActiveCategory] = useState<string>('all')
 
   useEffect(() => {
@@ -43,6 +44,8 @@ export default function MenuPage() {
       const res = await fetch('/api/categories')
       if (res.ok) {
         setCategories(await res.json())
+      } else {
+        console.error('Categories API error:', res.status)
       }
     } catch (error) {
       console.error('Failed to fetch categories:', error)
@@ -51,12 +54,17 @@ export default function MenuPage() {
 
   async function fetchDishes() {
     setLoading(true)
+    setError(null)
     try {
       const res = await fetch('/api/dishes')
       if (res.ok) {
         setDishes(await res.json())
+      } else {
+        setError('加载失败，请刷新重试')
+        console.error('Dishes API error:', res.status)
       }
     } catch (error) {
+      setError('网络错误，请检查连接')
       console.error('Failed to fetch dishes:', error)
     } finally {
       setLoading(false)
@@ -100,6 +108,11 @@ export default function MenuPage() {
       {/* 菜品列表 */}
       {loading ? (
         <div className="text-center py-8 text-muted-foreground">加载中...</div>
+      ) : error ? (
+        <div className="text-center py-8">
+          <p className="text-red-500 mb-2">{error}</p>
+          <Button variant="outline" onClick={() => fetchDishes()}>重试</Button>
+        </div>
       ) : filteredDishes.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">暂无菜品</div>
       ) : (

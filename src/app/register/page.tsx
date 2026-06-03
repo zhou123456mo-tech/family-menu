@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { signIn } from 'next-auth/react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -45,20 +45,11 @@ export default function RegisterPage() {
         return
       }
 
-      // 自动登录
-      const loginResult = await signIn('credentials', {
-        phone,
-        password,
-        redirect: false
-      })
-
-      if (loginResult?.error) {
-        setError('注册成功，但自动登录失败，请手动登录')
-        router.push('/login')
-      } else {
-        router.push('/admin')
-        router.refresh()
-      }
+      // 注册成功，提示并跳转登录页
+      toast.success('注册成功，请登录')
+      setLoading(false)
+      router.push('/login')
+      return
     } catch (err) {
       console.error('Register error:', err)
       setError('注册失败，请重试')
