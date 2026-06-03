@@ -56,3 +56,7 @@ git config user.email zhou123456mo@gmail.com
 
 git remote set-url origin git@gitee.com:y-agent/family-menu.git
 git push -u origin main
+
+# 正确关闭服务（Ctrl+C 后检查）
+
+pkill -f "next dev"
