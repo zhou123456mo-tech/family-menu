@@ -11,10 +11,13 @@ const registerSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('[Register] 开始处理注册请求')
     const body = await request.json()
+    console.log('[Register] 请求体:', { ...body, password: '***' })
     const data = registerSchema.parse(body)
 
     // 检查手机号是否已注册
+    console.log('[Register] 检查手机号:', data.phone)
     const existingUser = await prisma.user.findUnique({
       where: { phone: data.phone }
     })
@@ -27,9 +30,11 @@ export async function POST(request: NextRequest) {
     }
 
     // 加密密码
+    console.log('[Register] 加密密码')
     const hashedPassword = await bcrypt.hash(data.password, 10)
 
     // 创建用户（默认为管理员）
+    console.log('[Register] 创建用户')
     const user = await prisma.user.create({
       data: {
         name: data.name,
@@ -39,6 +44,7 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    console.log('[Register] 用户创建成功:', user.id)
     return NextResponse.json({
       id: user.id,
       name: user.name,
@@ -46,10 +52,15 @@ export async function POST(request: NextRequest) {
       role: user.role
     })
   } catch (error) {
+    console.error('[Register] 错误:', error)
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: error.issues }, { status: 400 })
     }
-    console.error('Register error:', error)
-    return NextResponse.json({ error: '注册失败，请重试' }, { status: 500 })
+    // 返回详细错误信息便于调试
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    return NextResponse.json({
+      error: '注册失败，请重试',
+      detail: errorMessage
+    }, { status: 500 })
   }
 }
