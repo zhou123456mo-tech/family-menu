@@ -56,7 +56,11 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       }
     })
 
-    return NextResponse.json(user)
+    return NextResponse.json({ 
+      success: true, 
+      message: '角色更新成功',
+      data: user 
+    })
   } catch (error) {
     console.error('Update user error:', error)
     return NextResponse.json({ error: '更新用户失败' }, { status: 500 })
@@ -97,7 +101,10 @@ export async function DELETE(request: Request, { params }: RouteParams) {
       where: { id }
     })
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ 
+      success: true, 
+      message: '用户已删除' 
+    })
   } catch (error) {
     console.error('Delete user error:', error)
     return NextResponse.json({ error: '删除用户失败' }, { status: 500 })

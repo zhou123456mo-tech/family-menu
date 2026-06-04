@@ -16,6 +16,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Plus, X } from 'lucide-react'
 import { ImageUpload } from './image-upload'
+import { toast } from 'sonner'
 
 interface Category {
   id: string
@@ -124,8 +125,10 @@ export function DishForm({ dishId }: DishFormProps) {
         })
       })
 
+      const result = await res.json()
+
       if (res.ok) {
-        const dish = await res.json()
+        const dish = result.data || result
 
         // 保存做法
         if (methods.length > 0 || dishId) {
@@ -145,15 +148,15 @@ export function DishForm({ dishId }: DishFormProps) {
           }
         }
 
+        toast.success(dishId ? '菜品更新成功' : '菜品创建成功')
         router.push('/admin/dishes')
         router.refresh()
       } else {
-        const error = await res.json()
-        alert(error.error || '保存失败')
+        toast.error(result.error || '保存失败')
       }
     } catch (error) {
       console.error('Failed to save dish:', error)
-      alert('保存失败')
+      toast.error('保存失败，请重试')
     } finally {
       setSubmitting(false)
     }
