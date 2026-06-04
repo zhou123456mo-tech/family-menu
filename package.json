@@ -7,7 +7,7 @@
     "build": "DATABASE_URL=\"file:./prisma/dev.db\" prisma generate && prisma migrate deploy && next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate",
+    "postinstall": "DATABASE_URL=\"file:./prisma/dev.db\" prisma generate",
     "pages:build": "npx @cloudflare/next-on-pages",
     "pages:dev": "npx wrangler pages dev .vercel/output/static --compatibility-flag=nodejs_compat",
     "pages:deploy": "pnpm build && pnpm pages:build && npx wrangler pages deploy .vercel/output/static"
