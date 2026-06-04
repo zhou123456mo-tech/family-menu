@@ -7,24 +7,34 @@ const globalForPrisma = globalThis as unknown as {
 }
 
 function createPrismaClient() {
+  const isProduction = process.env.NODE_ENV === 'production'
+  const tursoUrl = process.env.TURSO_DATABASE_URL
+  const tursoToken = process.env.TURSO_AUTH_TOKEN
+
+  // 调试：输出环境变量状态
+  console.log('[DB] NODE_ENV:', process.env.NODE_ENV)
+  console.log('[DB] TURSO_DATABASE_URL:', tursoUrl ? '已设置' : '未设置')
+  console.log('[DB] TURSO_AUTH_TOKEN:', tursoToken ? '已设置' : '未设置')
+
   // 生产环境必须使用 Turso
-  if (process.env.NODE_ENV === 'production') {
-    if (!process.env.TURSO_DATABASE_URL || !process.env.TURSO_AUTH_TOKEN) {
+  if (isProduction) {
+    if (!tursoUrl || !tursoToken) {
       throw new Error(
-        '生产环境必须设置 TURSO_DATABASE_URL 和 TURSO_AUTH_TOKEN 环境变量'
+        `生产环境必须设置 TURSO_DATABASE_URL 和 TURSO_AUTH_TOKEN 环境变量。当前: URL=${tursoUrl ? '有' : '无'}, TOKEN=${tursoToken ? '有' : '无'}`
       )
     }
     const libsql = createClient({
-      url: process.env.TURSO_DATABASE_URL,
-      authToken: process.env.TURSO_AUTH_TOKEN,
+      url: tursoUrl,
+      authToken: tursoToken,
     })
     const adapter = new PrismaLibSQL(libsql as any)
     return new PrismaClient({ adapter } as any)
   }
 
   // 本地开发使用 SQLite
+  console.log('[DB] 使用本地 SQLite')
   return new PrismaClient({
-    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error']
+    log: ['query', 'error', 'warn']
   })
 }
 
