@@ -7,8 +7,13 @@ const globalForPrisma = globalThis as unknown as {
 }
 
 function createPrismaClient() {
-  // 生产环境使用 Turso
-  if (process.env.TURSO_DATABASE_URL && process.env.TURSO_AUTH_TOKEN) {
+  // 生产环境必须使用 Turso
+  if (process.env.NODE_ENV === 'production') {
+    if (!process.env.TURSO_DATABASE_URL || !process.env.TURSO_AUTH_TOKEN) {
+      throw new Error(
+        '生产环境必须设置 TURSO_DATABASE_URL 和 TURSO_AUTH_TOKEN 环境变量'
+      )
+    }
     const libsql = createClient({
       url: process.env.TURSO_DATABASE_URL,
       authToken: process.env.TURSO_AUTH_TOKEN,
