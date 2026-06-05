@@ -7,53 +7,64 @@ declare global {
   var __prismaClient: PrismaClient | undefined
 }
 
+let _prisma: PrismaClient | undefined
+
 /**
- * 获取 Prisma 客户端实例
+ * 获取 Prisma 客户端实例（延迟初始化）
  */
-export function getPrisma(): PrismaClient {
-  // 开发环境使用全局缓存
-  if (process.env.NODE_ENV !== 'production') {
-    if (globalThis.__prismaClient) {
-      return globalThis.__prismaClient
-    }
+function getPrisma(): PrismaClient {
+  // 已经初始化过
+  if (_prisma) return _prisma
+
+  // 开发环境检查全局缓存
+  if (process.env.NODE_ENV !== 'production' && globalThis.__prismaClient) {
+    _prisma = globalThis.__prismaClient
+    return _prisma
   }
 
   const tursoUrl = process.env.TURSO_DATABASE_URL
   const tursoToken = process.env.TURSO_AUTH_TOKEN
 
-  console.log('[DB] 初始化 Prisma')
-  console.log('[DB] TURSO_DATABASE_URL:', tursoUrl ? '已设置' : '未设置')
-  console.log('[DB] TURSO_AUTH_TOKEN:', tursoToken ? '已设置' : '未设置')
-
-  let client: PrismaClient
+  console.log('[DB-v2] 初始化 Prisma')
+  console.log('[DB-v2] TURSO_DATABASE_URL:', tursoUrl ? '已设置' : '未设置')
+  console.log('[DB-v2] TURSO_AUTH_TOKEN:', tursoToken ? '已设置' : '未设置')
 
   // 优先使用 Turso
   if (tursoUrl && tursoUrl !== 'undefined' && tursoToken && tursoToken !== 'undefined') {
-    console.log('[DB] 使用 Turso adapter')
+    console.log('[DB-v2] 使用 Turso adapter')
 
-    // PrismaLibSQL 构造函数接受 Config 对象，不是 Client
     const adapter = new PrismaLibSQL({
       url: tursoUrl,
       authToken: tursoToken,
     })
 
-    client = new PrismaClient({ adapter } as any)
+    _prisma = new PrismaClient({ adapter } as any)
   } else {
     // 本地 SQLite
-    console.log('[DB] 使用本地 SQLite')
-    client = new PrismaClient({
+    console.log('[DB-v2] 使用本地 SQLite')
+    _prisma = new PrismaClient({
       log: ['query', 'error', 'warn']
     })
   }
 
-  // 缓存
+  // 开发环境缓存
   if (process.env.NODE_ENV !== 'production') {
-    globalThis.__prismaClient = client
+    globalThis.__prismaClient = _prisma
   }
 
-  return client
+  return _prisma
 }
 
-// 导出
-export const prisma = getPrisma()
+// 使用 Proxy 延迟初始化
+export const prisma = new Proxy({} as PrismaClient, {
+  get(_, prop) {
+    const client = getPrisma()
+    const value = (client as any)[prop]
+    if (typeof value === 'function') {
+      return value.bind(client)
+    }
+    return value
+  }
+})
+
 export default prisma
