@@ -1,5 +1,6 @@
 import { PrismaClient } from '@/generated/prisma/client'
 import { PrismaLibSQL } from '@prisma/adapter-libsql'
+import { createClient } from '@libsql/client'
 
 // 全局缓存
 declare global {
@@ -25,23 +26,26 @@ function getPrisma(): PrismaClient {
   const tursoUrl = process.env.TURSO_DATABASE_URL
   const tursoToken = process.env.TURSO_AUTH_TOKEN
 
-  console.log('[DB-v2] 初始化 Prisma')
-  console.log('[DB-v2] TURSO_DATABASE_URL:', tursoUrl ? '已设置' : '未设置')
-  console.log('[DB-v2] TURSO_AUTH_TOKEN:', tursoToken ? '已设置' : '未设置')
+  console.log('[DB-v3] 初始化 Prisma')
+  console.log('[DB-v3] TURSO_DATABASE_URL:', tursoUrl ? '已设置' : '未设置')
+  console.log('[DB-v3] TURSO_AUTH_TOKEN:', tursoToken ? '已设置' : '未设置')
 
   // 优先使用 Turso
   if (tursoUrl && tursoUrl !== 'undefined' && tursoToken && tursoToken !== 'undefined') {
-    console.log('[DB-v2] 使用 Turso adapter')
+    console.log('[DB-v3] 使用 Turso adapter')
 
-    const adapter = new PrismaLibSQL({
+    // 方法1: 使用 createClient 创建客户端
+    const libsql = createClient({
       url: tursoUrl,
       authToken: tursoToken,
     })
 
+    // 传递客户端实例
+    const adapter = new PrismaLibSQL(libsql as any)
     _prisma = new PrismaClient({ adapter } as any)
   } else {
     // 本地 SQLite
-    console.log('[DB-v2] 使用本地 SQLite')
+    console.log('[DB-v3] 使用本地 SQLite')
     _prisma = new PrismaClient({
       log: ['query', 'error', 'warn']
     })
