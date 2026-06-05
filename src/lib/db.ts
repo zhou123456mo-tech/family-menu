@@ -1,6 +1,5 @@
 import { PrismaClient } from '@/generated/prisma/client'
 import { PrismaLibSQL } from '@prisma/adapter-libsql'
-import { createClient } from '@libsql/client'
 
 // 全局缓存
 declare global {
@@ -32,13 +31,12 @@ export function getPrisma(): PrismaClient {
   if (tursoUrl && tursoUrl !== 'undefined' && tursoToken && tursoToken !== 'undefined') {
     console.log('[DB] 使用 Turso adapter')
 
-    const libsql = createClient({
+    // PrismaLibSQL 构造函数接受 Config 对象，不是 Client
+    const adapter = new PrismaLibSQL({
       url: tursoUrl,
       authToken: tursoToken,
     })
 
-    // 使用类型断言绕过类型检查
-    const adapter = new PrismaLibSQL(libsql as any)
     client = new PrismaClient({ adapter } as any)
   } else {
     // 本地 SQLite
