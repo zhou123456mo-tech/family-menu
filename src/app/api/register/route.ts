@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
-import bcrypt from 'bcryptjs'
+import { findUserByPhone, createUser } from '@/lib/users'
 import { z } from 'zod'
 
 const registerSchema = z.object({
@@ -18,30 +17,19 @@ export async function POST(request: NextRequest) {
 
     // 检查手机号是否已注册
     console.log('[Register] 检查手机号:', data.phone)
-    const existingUser = await prisma.user.findUnique({
-      where: { phone: data.phone }
-    })
+    const existingUser = await findUserByPhone(data.phone)
 
     if (existingUser) {
-      return NextResponse.json(
-        { error: '该手机号已注册' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: '该手机号已注册' }, { status: 400 })
     }
-
-    // 加密密码
-    console.log('[Register] 加密密码')
-    const hashedPassword = await bcrypt.hash(data.password, 10)
 
     // 创建用户（默认为管理员）
     console.log('[Register] 创建用户')
-    const user = await prisma.user.create({
-      data: {
-        name: data.name,
-        phone: data.phone,
-        password: hashedPassword,
-        role: 'ADMIN'
-      }
+    const user = await createUser({
+      name: data.name,
+      phone: data.phone,
+      password: data.password,
+      role: 'ADMIN'
     })
 
     console.log('[Register] 用户创建成功:', user.id)
@@ -56,11 +44,13 @@ export async function POST(request: NextRequest) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: error.issues }, { status: 400 })
     }
-    // 返回详细错误信息便于调试
     const errorMessage = error instanceof Error ? error.message : String(error)
-    return NextResponse.json({
-      error: '注册失败，请重试',
-      detail: errorMessage
-    }, { status: 500 })
+    return NextResponse.json(
+      {
+        error: '注册失败，请重试',
+        detail: errorMessage
+      },
+      { status: 500 }
+    )
   }
 }

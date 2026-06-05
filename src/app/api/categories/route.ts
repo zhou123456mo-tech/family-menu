@@ -1,15 +1,15 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
+import { getCategories } from '@/lib/categories'
 
 export async function GET() {
-  const categories = await prisma.category.findMany({
-    include: {
-      _count: {
-        select: { dishes: { where: { status: 'AVAILABLE' } } }
-      }
-    },
-    orderBy: { sort: 'asc' }
-  })
-
-  return NextResponse.json(categories)
+  try {
+    const categories = await getCategories()
+    return NextResponse.json(categories)
+  } catch (error) {
+    console.error('[Categories] 错误:', error)
+    return NextResponse.json(
+      { error: '获取分类失败' },
+      { status: 500 }
+    )
+  }
 }
