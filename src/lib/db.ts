@@ -1,29 +1,11 @@
 import { PrismaClient } from '@/generated/prisma/client'
 import { PrismaLibSQL } from '@prisma/adapter-libsql'
-import { createClient, type Client } from '@libsql/client'
+import { createClient } from '@libsql/client'
 
 // 全局缓存
 declare global {
   // eslint-disable-next-line no-var
   var __prismaClient: PrismaClient | undefined
-  // eslint-disable-next-line no-var
-  var __libsqlClient: Client | undefined
-}
-
-/**
- * 创建 Turso libsql 客户端
- */
-function createTursoClient(): Client {
-  const url = process.env.TURSO_DATABASE_URL
-  const token = process.env.TURSO_AUTH_TOKEN
-
-  if (!url || url === 'undefined' || !token || token === 'undefined') {
-    throw new Error('[DB] Turso 环境变量未设置')
-  }
-
-  console.log('[DB] 创建 Turso 客户端:', url)
-
-  return createClient({ url, authToken: token })
 }
 
 /**
@@ -50,13 +32,13 @@ export function getPrisma(): PrismaClient {
   if (tursoUrl && tursoUrl !== 'undefined' && tursoToken && tursoToken !== 'undefined') {
     console.log('[DB] 使用 Turso adapter')
 
-    // 复用或创建 libsql 客户端
-    const libsql = globalThis.__libsqlClient ?? createTursoClient()
-    if (process.env.NODE_ENV !== 'production') {
-      globalThis.__libsqlClient = libsql
-    }
+    const libsql = createClient({
+      url: tursoUrl,
+      authToken: tursoToken,
+    })
 
-    const adapter = new PrismaLibSQL(libsql)
+    // 使用类型断言绕过类型检查
+    const adapter = new PrismaLibSQL(libsql as any)
     client = new PrismaClient({ adapter } as any)
   } else {
     // 本地 SQLite
@@ -74,6 +56,6 @@ export function getPrisma(): PrismaClient {
   return client
 }
 
-// 导出工厂函数
+// 导出
 export const prisma = getPrisma()
 export default prisma
